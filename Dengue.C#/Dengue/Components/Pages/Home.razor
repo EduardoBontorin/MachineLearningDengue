@@ -1,0 +1,439 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject DengueDataContext _context
+@using Dengue.Data
+@using Dengue.Models
+@using Microsoft.EntityFrameworkCore
+@using OfficeOpenXml;
+@using System.IO;
+@using System.Globalization
+
+<table>
+    <thead>
+        <tr>
+            <th>Cidade</th>
+      
+        </tr>
+    </thead>
+    <tbody>
+       
+    </tbody>
+</table>
+
+@code {
+
+    List<SemanaCLima> Semanas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await LerExcel();
+        
+        //await LerExcel2();
+        //teste();
+        GravarExcel();
+        //await SubstituiNulo();
+        //await AgruparDadosPorSemana();
+    }
+    public async Task LerExcel2()
+    {
+        for (int _ano = 2024; _ano <= 2024; _ano++)
+        {
+            Console.WriteLine($"Iniciando leitura planilha {_ano}");
+
+            FileInfo file = new FileInfo($"C:\\Users\\eduar\\OneDrive - Brasil3 Comercio de Software e Hardware Ltda\\Área de Trabalho\\Brasil3\\Eduardo\\SENAI\\IA\\Dengue\\{_ano.ToString()}.xlsx");
+
+            using (ExcelPackage package = new ExcelPackage(file))
+            {
+                ExcelWorkbook workbook = package.Workbook;
+                if (workbook == null || workbook.Worksheets.Count == 0)
+                {
+                    Console.WriteLine($"Erro: Nenhuma planilha encontrada no arquivo {_ano}");
+                    continue;
+                }
+
+                ExcelWorksheet wSheet = workbook.Worksheets[0];
+                int colCount = wSheet.Dimension?.End.Column ?? 0;
+                int rowCount = wSheet.Dimension?.End.Row ?? 0;
+
+                if (colCount == 0 || rowCount == 0)
+                {
+                    Console.WriteLine($"Erro: Planilha vazia ou sem dimensão definida no arquivo {_ano}");
+                    continue;
+                }
+
+                int row = 5;
+
+                while (row <= rowCount && wSheet.Cells["A" + row].Value != null)
+                {
+                    try
+                    {
+                        int col = 2;
+                        while (col <= colCount && wSheet.Cells[row, col].Value != null)
+                        {
+                            Semana semana = new();
+                            semana.Ano = _ano.ToString();
+                            semana.Sequencial = wSheet.Cells[4, col].GetValue<string>() ?? null;
+                            string notifProv = wSheet.Cells[row, col].GetValue<string>() ?? null;
+                            semana.Notificacoes = notifProv == "-" ? "0" : notifProv ?? "0";
+
+                            _context.Semanas.Add(semana);
+
+                            col++;
+                        }
+
+                        row++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro na linha {row}: {ex.Message}");
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task LerExcel()
+    {
+
+        for(int ano = 2024; ano <= 2024; ano++)
+        {
+
+
+            Console.WriteLine($"Iniciando leitura planilha {ano}");
+
+            FileInfo file = new FileInfo($"C:\\Users\\eduar\\OneDrive - Brasil3 Comercio de Software e Hardware Ltda\\Área de Trabalho\\Brasil3\\Eduardo\\SENAI\\IA\\Dengue\\Clima\\{ano.ToString()}.xlsx");
+
+            using (ExcelPackage package = new ExcelPackage(file))
+            {
+                ExcelWorksheet wSheet = package.Workbook.Worksheets[0];
+                int colCount = wSheet.Dimension.End.Column;
+                int rowCount = wSheet.Dimension.End.Row;
+                int row = 10;
+
+                while (row <= rowCount && wSheet.Cells["A" + row].Value != null)
+                {
+                    try
+                    {
+                        Clima _clima = new();
+                        _clima.Ano = ano.ToString();
+                        _clima.Cidade = "Foz";
+
+                        // Leitura simplificada com tratamento de nulos:
+                        _clima.Data = wSheet.Cells[row, 1].GetValue<string>() ?? null;
+
+                        if(ano >= 2019)
+                        {
+                            _clima.Hora = wSheet.Cells[row, 2].GetValue<string>()?.Substring(0, 2) + ":00:00" ?? "";
+                        }
+                        else
+                        {
+                            _clima.Hora = wSheet.Cells[row, 2].GetValue<string>() ?? null;
+                        }
+
+
+                        _clima.Precipitacao = wSheet.Cells[row, 3].GetValue<string>() ?? null;
+                        _clima.TempMax = wSheet.Cells[row, 10].GetValue<string>() ?? null;
+                        _clima.TempMin = wSheet.Cells[row, 11].GetValue<string>() ?? null;
+
+                        _context.Climas.Add(_clima);
+                        await _context.SaveChangesAsync();
+
+                        row++;
+                        if(row % 100 == 0)
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro na linha {row}: {ex.Message}");
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+
+    public async Task AgruparDadosPorSemana()
+    {
+        try
+        {
+            for(int ano = 2024;ano <= 2024; ano++)
+            {
+                var climas = await _context.ClimasC.Where(x => x.Ano == ano.ToString()).ToListAsync();
+
+                var groupedClimas = climas
+                    .GroupBy(data => GetWeekOfYearUniform(DateTime.Parse(data.Data)));
+
+
+
+                Console.WriteLine(groupedClimas);
+
+                foreach (var weekGroup in groupedClimas)
+                {
+                    var weekNumber = weekGroup.Key;
+                    var weekData = weekGroup.ToList();
+
+                    double totalPrecipitacao = weekData.Sum(d => double.Parse(d.Precipitacao));
+                    double maxTemperatura = weekData.Max(d => double.Parse(d.TempMax));
+                    double minTemperatura = weekData.Min(d => double.Parse(d.TempMin));
+
+                    // SemanaCLima semana = new()
+                    //     {
+                    //         Ano = "2018",
+                    //         WeekNumber = weekNumber,
+                    //         TemperaturaMaxima = maxTemperatura,
+                    //         TemperaturaMinima = minTemperatura,
+                    //         TotalPrecipitacao = totalPrecipitacao
+                    //     };
+
+                    Semanas.Add(new SemanaCLima
+                        {
+                            Ano = ano.ToString(),
+                            WeekNumber = weekNumber,
+                            TemperaturaMaxima = maxTemperatura,
+                            TemperaturaMinima = minTemperatura,
+                            TotalPrecipitacao = totalPrecipitacao
+                        });
+
+
+                }
+
+
+                foreach (var semana in Semanas)
+                {
+                    _context.ClimasSemana.Add(semana);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
+
+    static int GetWeekOfYearUniform(DateTime date)
+    {
+        int dayOfYear = date.DayOfYear;
+        return (dayOfYear - 3) / 7 + 1; // Ajustar para 52 semanas
+    }
+
+    public async Task  SubstituiNulo()
+    {
+
+        Clima clima = new();
+        List<Clima> climas = new();
+
+        climas = await _context.Climas.AsNoTracking().Where(x => x.Ano == "2024").ToListAsync();
+
+        foreach(var climaE in climas)
+        {
+            if(climaE.Precipitacao is null || climaE.TempMax is null || climaE.TempMin is null)
+            {
+                List<decimal> maximos = new List<decimal>();
+                List<decimal> minimos = new List<decimal>();
+                List<decimal> chuvas = new List<decimal>();
+
+                List<Clima> climasDoDia =await  _context.Climas
+                .AsNoTracking()
+                .Where(x => x.Data.Substring(0, 5) == climaE.Data.Substring(0, 5) && 
+                x.Hora.Substring(0, 6) == climaE.Hora.Substring(0, 6)).ToListAsync();
+
+                foreach (var teste in climasDoDia)
+                {
+                    if (!string.IsNullOrEmpty(teste.TempMax) && decimal.TryParse(teste.TempMax, out decimal tempMax))
+                    {
+                        maximos.Add(tempMax);
+                    }
+
+                    if (!string.IsNullOrEmpty(teste.TempMin) && decimal.TryParse(teste.TempMin, out decimal tempMin))
+                    {
+                        minimos.Add(tempMin);
+                    }
+
+                    if (!string.IsNullOrEmpty(teste.Precipitacao) && decimal.TryParse(teste.Precipitacao, out decimal precipitacao))
+                    {
+                        chuvas.Add(precipitacao);
+                    }
+                }
+
+                if(climaE.TempMax is null)
+                {
+                    climaE.TempMax = Math.Round(maximos.Average(), 2).ToString();
+                }
+                if(climaE.TempMin is null)
+                {
+                    climaE.TempMin = Math.Round(minimos.Average(), 2).ToString();
+                }
+                if(climaE.Precipitacao is null)
+                {
+                    climaE.Precipitacao = Math.Round(chuvas.Average(), 2).ToString();
+                }
+
+                ClimaArrumado climaArrumado = new()
+                    {
+                        Ano = climaE.Ano,
+                        Data = climaE.Data,
+                        Hora = climaE.Hora,
+                        Cidade = "Foz",
+                        TempMax = climaE.TempMax,
+                        TempMin = climaE.TempMin,
+                        Precipitacao = climaE.Precipitacao
+                    };
+
+                await _context.ClimasC.AddAsync(climaArrumado);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                ClimaArrumado climaArrumado = new()
+                    {
+                        Ano = climaE.Ano,
+                        Data = climaE.Data,
+                        Hora = climaE.Hora,
+                        Cidade = "Foz",
+                        TempMax = climaE.TempMax,
+                        TempMin = climaE.TempMin,
+                        Precipitacao = climaE.Precipitacao
+
+                    };
+                await _context.ClimasC.AddAsync(climaArrumado);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+
+
+    }
+    public void teste()
+    {
+        List<Clima> climas = new();
+        List<Clima> climas2 = new();
+
+        climas= _context.Climas.AsNoTracking().Where(x => x.Ano == "2022").ToList();
+
+        foreach(var clima in climas)
+        {
+            decimal max = decimal.Parse(clima.TempMax);
+            decimal min = decimal.Parse(clima.TempMin);
+
+            if(max <0 || min < 0)
+            {
+                climas2.Add(clima);
+            }
+        }
+
+        Console.WriteLine(climas2);
+    }
+
+    public async Task GravarExcel2()
+    {
+
+        using (var package = new ExcelPackage())
+        {
+
+            List<SemanaCLima> climas = new();
+            List<Semana> semanas = new();
+
+            for (int j = 2016; j <= 2023; j++)
+            {
+                semanas = _context.Semanas.Where(x => x.Ano == j.ToString()).ToList();
+                climas = _context.ClimasSemana.Where(x => x.Ano == j.ToString()).ToList();
+
+
+
+                var worksheet = package.Workbook.Worksheets.Add("Dados");
+                int colIndex = 2;
+                worksheet.Cells[1, 1].Value = "semana,tempMin,tempMax,chuva,casos";
+                for (int i = 0; i <= 51; i++)
+                {
+                    double tempMin = Math.Round(climas[i].TemperaturaMinima, 2);
+                    double tempMax = Math.Round(climas[i].TemperaturaMaxima, 2);
+                    double chuva = Math.Round(climas[i].TotalPrecipitacao, 2);
+
+                    string tempMinStr = tempMin.ToString("F2", CultureInfo.InvariantCulture);
+                    string tempMaxStr = tempMax.ToString("F2", CultureInfo.InvariantCulture);
+                    string chuvaStr = chuva.ToString("F2", CultureInfo.InvariantCulture);
+
+
+                    string concat = climas[i].WeekNumber.ToString() + "," + tempMinStr + "," + tempMaxStr + "," + chuvaStr + "," + semanas[i].Notificacoes;
+
+                    worksheet.Cells[i + 2, 1].Value = concat;
+                }
+            }
+
+            try
+            {
+                // Salvar o arquivo Excel
+                var file = new FileInfo(@"C:\Teste\dados.xlsx");
+                package.SaveAs(file);
+                Console.WriteLine("Deu boa");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Deu erro{ex.StackTrace}");
+            }
+        }
+
+
+
+    }
+
+
+    public async Task GravarExcel()
+    {
+        List<SemanaCLima> climas = new();
+        List<Semana> semanas = new();
+
+        using (var package = new ExcelPackage())
+        {
+            var worksheet = package.Workbook.Worksheets.Add("Dados");
+            int rowIndex = 2;
+
+            // Adicionando cabeçalhos
+            worksheet.Cells[1, 1].Value = "Ano,semana,tempMin,TempMax,Chuva,Casos";
+
+
+           
+                semanas = _context.Semanas.Where(x => x.Ano == "2024").ToList();
+                climas = _context.ClimasSemana.Where(x => x.Ano == "2024").ToList();
+
+                for (int i = 0; i < climas.Count; i++)
+                {
+                    double tempMin = Math.Round(climas[i].TemperaturaMinima, 2);
+                    double tempMax = Math.Round(climas[i].TemperaturaMaxima, 2);
+                    double chuva = Math.Round(climas[i].TotalPrecipitacao, 2);
+
+                    string tempMinStr = tempMin.ToString("F2", CultureInfo.InvariantCulture);
+                    string tempMaxStr = tempMax.ToString("F2", CultureInfo.InvariantCulture);
+                    string chuvaStr = chuva.ToString("F2", CultureInfo.InvariantCulture);
+
+                    string concat = "2024" + "," + climas[i].WeekNumber.ToString() + "," + tempMinStr + "," + tempMaxStr + "," + chuvaStr + "," + semanas[i].Notificacoes;
+
+                    worksheet.Cells[rowIndex, 1].Value = "2024";                        // Coluna Ano
+                    worksheet.Cells[rowIndex, 1].Value = concat;   // Coluna Semana
+
+
+                    rowIndex++;
+                }
+            
+
+            try
+            {
+                // Salvar o arquivo Excel
+                var file = new FileInfo(@"C:\Teste\dados.xlsx");
+                package.SaveAs(file);
+                Console.WriteLine("Deu boa");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Deu erro: {ex.Message}");
+            }
+        }
+    }
+
+}
