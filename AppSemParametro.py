@@ -8,7 +8,12 @@ from sklearn.model_selection import GridSearchCV
 # Carregar os dados
 # Certifique-se de que o caminho está correto
 dataTreino = pd.read_csv('dados.csv')
+
+# Dados Curitiba
 dataTeste = pd.read_csv('dadosCWB.csv')
+# Dados Foz
+# dataTeste = pd.read_csv('teste.csv')
+
 treino_x = dataTreino[['TempMin', 'TempMax', 'Chuva']]
 treino_y = dataTreino['Casos']
 
