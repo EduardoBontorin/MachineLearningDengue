@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 
 # Carregar os dados
 # Certifique-se de que o caminho está correto

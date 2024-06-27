@@ -6,24 +6,23 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 dataTreino = pd.read_csv('dados.csv')
-dataTeste = pd.read_csv('teste.csv')
+dataTeste = pd.read_csv('dadosCWB.csv')
 treino_x = dataTreino[['TempMin', 'TempMax', 'Chuva']]
 treino_y = dataTreino['Casos']
 
-teste_x = dataTreino[['TempMin', 'TempMax', 'Chuva']]
-teste_y = dataTreino['Casos']
+teste_x = dataTeste[['TempMin', 'TempMax', 'Chuva']]
+teste_y = dataTeste['Casos']
 
 SEED = 5
 np.random.seed(SEED)
 
 
-modelo = DecisionTreeRegressor(max_depth=10, random_state=SEED)
+modelo = DecisionTreeRegressor(max_depth=5, random_state=SEED)
 
 print("Treino x e Y", treino_x.head(), treino_y.head())
 modelo.fit(treino_x, treino_y)
 
 
-print("Teste x", teste_x)
 previsoes = modelo.predict(teste_x)
 
 
@@ -47,7 +46,8 @@ plt.ylabel('Número de Casos')
 plt.legend()
 plt.show()
 
-# Plotar somente casos reais
+
+# Plotar casos reais e previstos
 plt.figure(figsize=(10, 5))
 plt.plot(teste_y.values, label='Casos Reais')
 plt.plot(previsoes, label='Casos Previstos')
