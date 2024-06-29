@@ -1,0 +1,49 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.linear_model import LinearRegression
+
+# Carregar dados
+dataTreino = pd.read_csv('dados.csv')
+dataTeste = pd.read_csv('Teste.csv')
+treino_x = dataTreino[['tempMin', 'TempMax', 'Chuva','2']]
+treino_y = dataTreino['3']
+
+teste_x = dataTeste[['tempMin', 'TempMax', 'Chuva','2']]
+teste_y = dataTeste['3']
+
+# Configurar semente
+SEED = 5
+np.random.seed(SEED)
+
+# Testar diferentes modelos
+modelos = {
+    # 'SVR Linear': SVR(kernel="linear", C=100, gamma="auto"),
+    'Sigmoidal':SVR(kernel='sigmoid', C=100, gamma=0.1, epsilon=0.1),
+
+}
+
+for nome, modelo in modelos.items():
+    print(f"Treinando {nome}")
+    modelo.fit(treino_x, treino_y)
+    previsoes = modelo.predict(teste_x)
+    # previsoes = np.maximum(previsoes, 0)
+    
+    mae = mean_absolute_error(teste_y, previsoes)
+    r2 = r2_score(teste_y, previsoes)
+    print(f"{nome} - MAE: {mae}, R²: {r2}")
+
+    # Plotar
+    # plt.figure(figsize=(10, 5))
+    # plt.plot(teste_y.values, label='Casos Reais')
+    # plt.plot(previsoes, label='Casos Previstos')
+    # plt.xlabel('Amostras')
+    # plt.ylabel('Número de Casos')
+    # plt.title(nome)
+    # plt.legend()
+    # plt.show()
