@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\dev\\MachineLearningDengue\\Dengue.C#\\",
+  "WorkspaceRootPath": "C:\\Users\\eduar\\source\\repos\\Cursos\\CursoBalta\\net 8\\Dengue\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{4DD69132-A52E-4702-AF51-6FE76922184C}|Dengue\\Dengue.csproj|c:\\dev\\machinelearningdengue\\dengue.c#\\dengue\\components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "AbsoluteMoniker": "D:0:0:{4DD69132-A52E-4702-AF51-6FE76922184C}|Dengue\\Dengue.csproj|c:\\users\\eduar\\source\\repos\\cursos\\cursobalta\\net 8\\dengue\\dengue\\components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{4DD69132-A52E-4702-AF51-6FE76922184C}|Dengue\\Dengue.csproj|solutionrelative:dengue\\components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
@@ -20,11 +20,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Home.razor",
-              "DocumentMoniker": "C:\\dev\\MachineLearningDengue\\Dengue.C#\\Dengue\\Components\\Pages\\Home.razor",
+              "DocumentMoniker": "C:\\Users\\eduar\\source\\repos\\Cursos\\CursoBalta\\net 8\\Dengue\\Dengue\\Components\\Pages\\Home.razor",
               "RelativeDocumentMoniker": "Dengue\\Components\\Pages\\Home.razor",
-              "ToolTip": "C:\\dev\\MachineLearningDengue\\Dengue.C#\\Dengue\\Components\\Pages\\Home.razor",
-              "RelativeToolTip": "Dengue\\Components\\Pages\\Home.razor",
-              "ViewState": "AgIAAIgBAAAAAAAAAAAkwKABAABDAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\eduar\\source\\repos\\Cursos\\CursoBalta\\net 8\\Dengue\\Dengue\\Components\\Pages\\Home.razor*",
+              "RelativeToolTip": "Dengue\\Components\\Pages\\Home.razor*",
+              "ViewState": "AQIAAIgBAAAAAAAAAAAkwKABAABDAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2024-06-23T00:06:05.946Z",
               "EditorCaption": ""
